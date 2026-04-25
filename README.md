@@ -1,0 +1,2 @@
+# e-voting-fraud-system
+A distributed e-governance voting system with real-time fraud detection using NoSQL databases. The project uses Apache Cassandra for vote storage and Neo4j for graph-based fraud analysis. It detects suspicious voting patterns such as multiple votes from the same IP or device using graph DB and provides transparency through an audit dashboard.
