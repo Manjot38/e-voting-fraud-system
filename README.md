@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-This folder contains voting system code
-=======
 # Secure Distributed E-Voting System with Fraud Detection
 A distributed e-governance voting system with real-time fraud detection using NoSQL databases. The project uses Apache Cassandra for vote storage and Neo4j for graph-based fraud analysis. It detects suspicious voting patterns such as multiple votes from the same IP or device using graph DB and provides transparency through an audit dashboard.
->>>>>>> 1eac9ebeaccd964d13abbda1290b9a97f69eefcc
+
