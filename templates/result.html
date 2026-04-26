@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h3 class="text-center mb-4">📊 Live Results Dashboard</h3>
+
+<table class="table table-bordered text-center">
+    <tr>
+        <th>Candidate</th>
+        <th>Votes</th>
+    </tr>
+
+    {% for key, value in data.items() %}
+    <tr>
+        <td>{{ key }}</td>
+        <td>{{ value }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <canvas id="barChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="pieChart"></canvas>
+    </div>
+</div>
+
+<a href="/logout" class="btn btn-danger mt-4">Logout</a>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+
+<script>
+    const rawData = JSON.parse('{{ data | tojson | safe }}');
+    const labels = Object.keys(rawData);
+    const values = Object.values(rawData);
+
+    new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{ label: "Votes", data: values }]
+        }
+    });
+
+    new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: labels,
+            datasets: [{ data: values }]
+        }
+    });
+</script>
+
+{% endblock %}
