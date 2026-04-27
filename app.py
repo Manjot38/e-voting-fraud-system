@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, render_template, request, redirect, session
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,7 +19,6 @@ elections = db["elections"]
 def hash_voter_id(voter_id):
     return hashlib.sha256(voter_id.encode()).hexdigest()
 
-# ---------------- REGISTER ----------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -29,7 +29,7 @@ def register():
 
         # Eligibility check
         if age < 18:
-            return "❌ Not eligible to vote (Age must be 18+)"
+            return "Not eligible to vote (Age must be 18+)"
 
         if voters.find_one({"voter_id": voter_id}):
             return "User already exists!"
@@ -46,7 +46,6 @@ def register():
 
     return render_template("register.html")
 
-# ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -63,7 +62,6 @@ def login():
 
     return render_template("login.html")
 
-# ---------------- VOTE ----------------
 @app.route("/vote", methods=["GET", "POST"])
 def vote():
     if "voter_id" not in session:
@@ -80,7 +78,6 @@ def vote():
     if not election:
         return "No active election found!"
 
-    # Filter eligible candidates (age >= 21)
     eligible_candidates = [c["name"] for c in election["candidates"] if c["age"] >= 21]
 
     if request.method == "POST":
@@ -88,17 +85,34 @@ def vote():
         voter_hash = hash_voter_id(voter_id)
 
         try:
-            votes.insert_one({
-                "voter_hash": voter_hash,
-                "candidate": candidate
-            })
+            ip = request.remote_addr
+            device_id = "D1" 
 
-            voters.update_one(
-                {"voter_id": voter_id},
-                {"$set": {"has_voted": True}}
+            fraud_response = requests.get(
+                "http://127.0.0.1:5002/fraud-check",
+                params={
+                    "voter_id": voter_id,
+                    "ip": ip,
+                    "device_id": device_id
+                }
             )
 
-            return redirect("/result")
+        fraud_data = fraud_response.json()
+
+        if fraud_data["status"] == "suspicious":
+            return f"Fraud Detected ❌: {fraud_data['reason']}"
+
+        votes.insert_one({
+            "voter_hash": voter_hash,
+            "candidate": candidate
+        })
+
+        voters.update_one(
+            {"voter_id": voter_id},
+            {"$set": {"has_voted": True}}
+        )
+
+        return redirect("/result")
 
         except:
             return "Duplicate Vote!"
