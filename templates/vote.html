@@ -3,6 +3,12 @@
 
 <h3 class="text-center">Cast Your Vote</h3>
 
+{% if error %}
+<div class="alert alert-danger text-center">
+    {{ error }}
+</div>
+{% endif %}
+
 <form method="POST" class="card p-4 mx-auto" style="max-width:400px;">
     {% for c in candidates %}
     <div class="form-check">
