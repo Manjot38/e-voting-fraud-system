@@ -100,7 +100,11 @@ def vote():
         fraud_data = fraud_response.json()
 
         if fraud_data["status"] == "suspicious":
-            return f"Fraud Detected ❌: {fraud_data['reason']}"
+            return render_template(
+                "vote.html",
+                candidates=eligible_candidates,
+                error=f"Fraud Detected : {fraud_data['reason']}"
+            )
 
         votes.insert_one({
             "voter_hash": voter_hash,
