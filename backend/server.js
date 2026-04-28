@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-
+const axios = require("axios");
 const app = express();
 
 // Middleware
@@ -17,16 +17,49 @@ app.get("/", (req, res) => {
 // ✅ Save vote with fraud detection
 app.post("/vote", async (req, res) => {
   try {
-    const existingVote = await Vote.findOne({ voterId: req.body.voterId });
+    app.post("/vote", async (req, res) => {
+  try {
+    const { voterId, candidate, region } = req.body;
+    const fraudResponse = await axios.get(
+      "http://127.0.0.1:5002/fraud-check",
+      {
+        params: {
+          voter_id: voterId,
+          ip: req.ip,
+          device_id: "D1"
+        }
+      }
+    );
 
-    if (existingVote) {
-      return res.send("❌ Fraud detected: already voted");
+    const fraudData = fraudResponse.data;
+
+    if (fraudData.status === "suspicious") {
+      return res.send(`Fraud Detected: ${fraudData.reason}`);
     }
 
-    const vote = new Vote(req.body);
+    // STEP 3: CHECK DUPLICATE (your old logic)
+    const existingVote = await Vote.findOne({ voterId });
+
+    if (existingVote) {
+      return res.send("Already voted");
+    }
+
+    // 🔹 STEP 4: SAVE VOTE
+    const vote = new Vote({
+      voterId,
+      candidate,
+      region,
+      fraudStatus: fraudData.status   
+    });
+
     await vote.save();
 
-    res.send("✅ Vote saved");
+    res.send("Vote saved successfully");
+
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
   } catch (err) {
     res.status(500).send(err);
   }
